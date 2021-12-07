@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import time
 from torch.autograd import Variable
 from torch.utils.data import DataLoader, TensorDataset
 
@@ -36,6 +37,7 @@ def fit_polynomial_ls(X,t,M):
     Outputs:
     w = tensor of weight values (vector of size M)
     '''
+    t0 = time.process_time()
 
     #initialize empty vector to store feature map of basis functions
     n = len(X)
@@ -49,6 +51,8 @@ def fit_polynomial_ls(X,t,M):
     b = torch.matmul(basis.T, t)
 
     w = torch.matmul(torch.linalg.torch.pinverse(A),b)
+
+    print("\nLS training time:", round(time.process_time()-t0,3),"s")
 
     return w
 
@@ -64,6 +68,7 @@ def fit_polynomial_sgd(X, t, M, lr, b):
     Outputs:
     w = tensor of weight values (vector of size M)
     '''
+    t0 = time.process_time()
 
     #combine dataset
     train_data = TensorDataset(X,t)
@@ -93,6 +98,8 @@ def fit_polynomial_sgd(X, t, M, lr, b):
             optimizer.zero_grad()
 
         # losses.append(loss)
+    
+    print("\nSGD training time:", round(time.process_time()-t0,3),"s")
 
     return w_hat
 
