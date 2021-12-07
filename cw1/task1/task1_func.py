@@ -39,7 +39,7 @@ def fit_polynomial_ls(X,t,M):
 
     #initialize empty vector to store feature map of basis functions
     n = len(X)
-    basis = Variable(torch.zeros([n,M]))
+    basis = Variable(torch.zeros([n,M],dtype=float))
 
     for i in range(M):
         basis[:,i] = torch.pow(X,i)

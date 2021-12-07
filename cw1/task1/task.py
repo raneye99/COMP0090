@@ -26,27 +26,27 @@ y_test_hat_ls = polynomial_fun(w_hat_ls, x_test)
 
 # Report using printed messages the mean and std in difference betwen 
 # A) the observed training data and the underlying true polynomial curve
-print("A:")
+print("\nDifferece between observed data and underlying curve:")
 diff_obs = y_train - polynomial_fun(w, x_train)
 mean_obs = torch.mean(diff_obs)
 std_obs = torch.std(diff_obs)
 
-print("The mean in difference between the observed training data and the underlying true polynomial curve is: %5.4f" % mean_obs.data.tolist())
-print("The standard deviation in difference between the observed training data and the underlying true polynomial curve is: %5.2f" % std_obs.data.tolist())
+print("Mean: %5.4f" % mean_obs.data.tolist())
+print("Standard Deviation: %5.2f" % std_obs.data.tolist())
 
 # B) the predicted values and the true polynomial curve
-print("B:")
+print("\nLEAST SQUARES - Difference between predicted data and underlying curve:")
 diff_pred_train_ls = y_train_hat_ls - polynomial_fun(w, x_train)
 mean_pred_train_ls = torch.mean(diff_pred_train_ls)
 std_pred_train_ls = torch.std(diff_pred_train_ls)
-print("The mean in difference between the predicted training data for least squares and the underlying true polynomial curve is: %5.4f" % mean_pred_train_ls.data.tolist())
-print("The standard deviation in difference between the predicted training data for least squares and the underlying true polynomial curve is: %5.2f" % std_pred_train_ls.data.tolist())
+print("Training Data Mean Difference: %5.4f" % mean_pred_train_ls.data.tolist())
+print("Training Data Std Difference: %5.2f" % std_pred_train_ls.data.tolist())
 
 diff_pred_test_ls = y_test_hat_ls - polynomial_fun(w, x_test)
 mean_pred_test_ls = torch.mean(diff_pred_test_ls)
 std_pred_test_ls = torch.std(diff_pred_test_ls)
-print("The mean in difference between the predicted test data and the underlying true polynomial curve is: %5.4f" % mean_pred_test_ls.data.tolist())
-print("The standard deviation in difference between the predicted test data and the underlying true polynomial curve is: %5.2f" % std_pred_test_ls.data.tolist())
+print("Test Data Mean Difference: %5.4f" % mean_pred_test_ls.data.tolist())
+print("Test Data Std Difference: %5.2f" % std_pred_test_ls.data.tolist())
 
 #Use fit_polynomial_sgd(M=4) to optimize the wight vector using the trianing set
 w_hat_sgd = fit_polynomial_sgd(x_train,y_train,4,1e-5,5)
@@ -59,11 +59,14 @@ y_test_hat_sgd = polynomial_fun(w_hat_sgd, x_test)
 diff_pred_train_sgd = y_train_hat_sgd - polynomial_fun(w, x_train)
 mean_pred_train_sgd = torch.mean(diff_pred_train_sgd)
 std_pred_train_sgd = torch.std(diff_pred_train_sgd)
-print("The mean in difference between the predicted training data for least squares and the underlying true polynomial curve is: %5.4f" % mean_pred_train_sgd.data.tolist())
-print("The standard deviation in difference between the predicted training data for least squares and the underlying true polynomial curve is: %5.2f" % std_pred_train_sgd.data.tolist())
+print("\nSGD - Difference between predicted data and underlying curve:")
+print("Training Data Mean Difference: %5.4f" % mean_pred_train_sgd.data.tolist())
+print("Training Data Std Difference: %5.2f" % std_pred_train_sgd.data.tolist())
 
 diff_pred_test_sgd = y_test_hat_sgd - polynomial_fun(w, x_test)
 mean_pred_test_sgd = torch.mean(diff_pred_test_sgd)
 std_pred_test_sgd = torch.std(diff_pred_test_sgd)
-print("The mean in difference between the predicted test data and the underlying true polynomial curve is: %5.4f" % mean_pred_test_sgd.data.tolist())
-print("The standard deviation in difference between the predicted test data and the underlying true polynomial curve is: %5.2f" % std_pred_test_sgd.data.tolist())
+print("Test Data Mean Difference: %5.4f" % mean_pred_test_sgd.data.tolist())
+print("Test Data Std Difference: %5.2f" % std_pred_test_sgd.data.tolist())
+
+#Compare the accuracy of your implementation usin the 2 methods with ground-truth on test set and repoert the RMSE in both w and y using printed messages
