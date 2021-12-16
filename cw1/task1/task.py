@@ -7,7 +7,7 @@ from torch.autograd import Variable
 from torch.utils.data import DataLoader, TensorDataset
 
 #import own functions
-from task1_func import polynomial_fun, fit_polynomial_ls, fit_polynomial_sgd
+from utils import polynomial_fun, fit_polynomial_ls, fit_polynomial_sgd
 
 #Create training and test set
 w = torch.tensor([1,2,3,4])
