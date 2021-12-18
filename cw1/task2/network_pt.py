@@ -7,24 +7,24 @@ import torch.nn.functional as F
 class Dense_Layer(nn.Module):
     def __init__(self, n_in, n_out):
         super(Dense_Layer, self).__init__()
-        self.bn = nn.BatchNorm2d(n_in)
-        self.relu = nn.ReLU(inplace=True)
-        self.conv = nn.Conv2d(n_in, n_out, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bndl = nn.BatchNorm2d(n_in)
+        self.reludl = nn.ReLU(inplace=True)
+        self.convdl = nn.Conv2d(n_in, n_out, kernel_size=3, stride=1, padding=1, bias=False)
     def forward(self,x):
-        out = self.conv(self.relu(self.bn(x)))
+        out = self.convdl(self.reludl(self.bndl(x)))
         x = torch.cat([x,out],1)
         return x
 
-class Transition_Layer(nn.Sequential):
+class Transition_Layer(nn.Module):
     def __init__(self, n_in, n_out):
         super(Transition_Layer, self).__init__()
-        self.bn = nn.BatchNorm2d(n_in)
-        self.relu = nn.ReLU(inplace=True)
-        self.conv = nn.Conv2d(n_in, n_out,kernel_size=1,stride=1,padding = 0,bias=0)
-        self.pool = nn.AvgPool2d(kernel_size=2, stride=2)
+        self.bntl = nn.BatchNorm2d(n_in)
+        self.relutl = nn.ReLU(inplace=True)
+        self.convtl = nn.Conv2d(n_in, n_out,kernel_size=1,stride=1,padding = 0,bias=False)
+        self.pooltl = nn.AvgPool2d(kernel_size=2, stride=2)
     
     def forward(self, x):
-        x = self.pool(self.conv(self.relu(self.bn(x))))
+        x = self.pooltl(self.convtl(self.relutl(self.bntl(x))))
         return x
 
 class Dense_Block(nn.Module):
@@ -43,24 +43,24 @@ class DenseNet3(nn.Module):
     def __init__(self):
         super(DenseNet3, self).__init__()
         #initial convolution
-        self.conv0 = nn.Conv2d(3, 6, kernel_size=3, stride = 1, padding=1, bias=False)
+        self.conv0 = nn.Conv2d(3, 32, kernel_size=3, stride = 1, padding=1, bias=False)
         
         #first denseblock
-        self.dense1 = Dense_Block(n_in = 6, growth = 16)
+        self.dense1 = Dense_Block(n_in = 32, growth = 32)
         #note since there are 4 layers the output of denseblock will have 6 +4*16 channels
-        self.trans1 = Transition_Layer(n_in = 70, n_out = 35)
+        self.trans1 = Transition_Layer(n_in = 160, n_out = 80)
 
         #second denseblock
-        self.dense2 = Dense_Block(n_in = 35, growth = 16)
-       #note since there are 4 layers the output of denseblock will have 35 + 4*16
-        self.trans2 = Transition_Layer(n_in = 99, n_out=50)
+        self.dense2 = Dense_Block(n_in = 80, growth = 32)
+        #note since there are 4 layers the output of denseblock will have 35 + 4*16
+        self.trans2 = Transition_Layer(n_in = 208, n_out=104)
 
         #third denseblock
-        self.dense3 = Dense_Block(n_in=50,growth=16)
+        self.dense3 = Dense_Block(n_in=104,growth=32)
 
         #global average pooling, classifier
-        self.bnend =  nn.BatchNorm2d(114)
-        self.classifier = nn.Linear(114, 10)
+        self.bnend =  nn.BatchNorm2d(232)
+        self.classifier = nn.Linear(232, 10)
 
     def forward(self,x):
         out = self.conv0(x)

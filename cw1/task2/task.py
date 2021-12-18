@@ -1,5 +1,5 @@
-#train script
-# adapted from image classification tutorial: https://github.com/YipengHu/COMP0090/blob/main/tutorials/img_cls/train_pt.py
+
+# adapted from image classification tutorial: https://github.com/YipengHu/COMP0090/blob/main/tutorials/img_cls/
 
 #import libraries
 # import tensorflow as tf
@@ -15,7 +15,7 @@ from torch.utils.data import DataLoader, TensorDataset
 from PIL import Image
 
 #import our densenet
-import network_pt as model
+import network_pt as dn
 #import cutout algorithm
 from utils import cutout
 
@@ -50,7 +50,7 @@ if __name__ == '__main__':
 
 
     ## densenet
-    net = model.DenseNet3()
+    net = dn.DenseNet3()
     ##print model architexture
     print("Model Architecture:")
     print("\n",net)
@@ -58,7 +58,7 @@ if __name__ == '__main__':
 
     ## loss and optimiser
     criterion = torch.nn.CrossEntropyLoss()
-    optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
+    optimizer = optim.SGD(net.parameters(), lr=0.1, momentum=0.9, nesterov=True, weight_decay= 1e-4)
 
     #initialize empty vectors to store values
     train_accuracy = []
@@ -69,12 +69,10 @@ if __name__ == '__main__':
     ## train
     for epoch in range(10):  # loop over the dataset multiple times
 
-        print('\nEpoch: %d'%epoch+1)
+        print(f'Starting Epoch {epoch+1}')
 
         #train
         running_loss = 0.0
-        correct = 0.0
-        total = 0
         
         for i, data in enumerate(trainloader, 0):
             # get the inputs; data is a list of [inputs, labels]
@@ -83,7 +81,7 @@ if __name__ == '__main__':
             #insert cutout algorithm into training
             cutouts = []
             for j,x in enumerate(inputs):
-                new_image = cutout(1,16,x)
+                new_image = cutout(1,8,x)
                 cutouts.append(new_image)
             
             new_inputs = torch.stack(cutouts)
@@ -99,17 +97,9 @@ if __name__ == '__main__':
 
             # print statistics
             running_loss += loss.item()
-            
-            _,predicted = outputs.max(1)
-            total += labels.size(0)
-            correct += predicted.eq(labels).sum().item()
         
         train_loss = running_loss/len(trainloader)
-        accuracy = 100.*correct/total
-
-        train_accuracy.append(accuracy)
-        train_losses.append(train_loss)
-        print('Train Loss: %.3f | Accuracy: %.3f'%(train_loss,accuracy))
+        print('Train Loss: %.3f'%(train_loss))
 
         #test
         running_loss = 0.0
@@ -118,7 +108,25 @@ if __name__ == '__main__':
 
         #forward pass only
         with torch.no_grad():
-            for i, data in enumerate(trainloader,0):
+            for k, data in enumerate(testloader,0):
+                inputs, lables = data
+
+                outputs = net(inputs)
+
+                loss = criterion(outputs,labels)
+                running_loss+=loss.item()
+
+                _,predicted = outputs.max(1)
+                total += labels.size(0)
+                correct +=predicted.eq(labels).sum().item()
+
+        test_loss = running_loss/len(testloader)
+        test_accu = 100.*correct/total
+
+        test_losses.append(test_loss)
+        test_accuracy.append(test_accu)
+
+        print('Test Loss: %.3f | Test Accuracy: %.3f'%(test_loss,test_accu),'%')
                     
 
     print('Training done.')
