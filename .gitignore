@@ -30,6 +30,7 @@ share/python-wheels/
 .installed.cfg
 *.egg
 *.jpg
+*.pt
 MANIFEST
 
 # PyInstaller
