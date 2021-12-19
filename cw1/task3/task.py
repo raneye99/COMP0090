@@ -14,6 +14,8 @@ import time
 
 from utils import cutout
 import network_pt as nw
+from model1 import LinearNet
+from model2 import CNN
 
 #define kfold function
 def kfold(fold, trainset, net, opt, loss_fc, epochs=2, batch =20, use_cutout = False, name = None):
@@ -141,6 +143,33 @@ def kfold(fold, trainset, net, opt, loss_fc, epochs=2, batch =20, use_cutout = F
     path = f'./{name}_Best_Model.pt'
     torch.save(model.state_dict(),path)
 
+    print("\nBegin Testing with Best Model")
+
+    running_loss = 0.0
+    correct = 0.0
+    total = 0
+    t_start = time.perf_counter()
+
+    with torch.no_grad():
+        for i,data in enumerate(testloader, 0):
+            inputs, labels = data
+
+            outputs = model(inputs)
+            loss = criterion(outputs, labels)
+            running_loss += loss.item()
+
+            _,predicted = outputs.max(1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+    
+    t_end = time.perf_counter()
+        
+    test_loss = running_loss/len(validloader)
+    test_accu = 100.*correct/total
+
+    print('Test Loss: %.3f | Test Accuracy: %.3f'%(test_loss,test_accu),'%')
+    print("Elapsed Time:", t_end-t_start)
+
 
 
 if __name__ == '__main__':
@@ -161,6 +190,9 @@ if __name__ == '__main__':
     #declare classes
     classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
+    print("Evaluate training with and without Cutout data augmentation algorithm implemented in task2")
+
+    #use model from tutorial
     net = nw.Net()
 
     #define loss and optimizer
@@ -172,3 +204,22 @@ if __name__ == '__main__':
 
     #use cross validation without cutout
     kfold(3, trainset, net, optimizer, loss_fc=criterion, epochs=2, batch=20, use_cutout=False, name = "Tutorial_with_Cutout")
+
+    #Define new model
+    net = LinearNet()
+
+    criterion = torch.nn.CrossEntropyLoss()
+    optimizer = optim.SGD(net.parameters(), lr=.001, momentum =.9)
+
+    #perform 3 fold cross validation on 1 model
+    kfold(3, trainset, net, optimizer, loss_fc=criterion,epochs=2, batch = 20, use_cutout=False, name = "Model1")
+
+    #Define new model
+    net = CNN()
+
+    criterion = torch.nn.CrossEntropyLoss()
+    optimizer = optim.SGD(net.parameters(), lr=.001, momentum =.9)
+
+    #perform 3 orld cross validation on 2 model
+    kfold(3, trainset, net, optimizer, loss_fc=criterion, epochs=2, batch = 20, use_cutout=False, name = "Model2")
+
