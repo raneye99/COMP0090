@@ -12,7 +12,7 @@ class Dense_Layer(nn.Module):
         self.convdl = nn.Conv2d(n_in, n_out, kernel_size=3, stride=1, padding=1, bias=False)
     def forward(self,x):
         out = self.convdl(self.reludl(self.bndl(x)))
-        x = torch.cat([x,out],1)
+        x = torch.cat((x,out),1)
         return x
 
 class Transition_Layer(nn.Module):

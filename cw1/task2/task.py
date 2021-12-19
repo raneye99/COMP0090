@@ -67,7 +67,7 @@ if __name__ == '__main__':
     test_losses = []
 
     ## train
-    for epoch in range(10):  # loop over the dataset multiple times
+    for epoch in range(1):  # loop over the dataset multiple times
 
         print(f'Starting Epoch {epoch+1}')
 
@@ -81,7 +81,7 @@ if __name__ == '__main__':
             #insert cutout algorithm into training
             cutouts = []
             for j,x in enumerate(inputs):
-                new_image = cutout(1,8,x)
+                new_image = cutout(1,16,x)
                 cutouts.append(new_image)
             
             new_inputs = torch.stack(cutouts)
