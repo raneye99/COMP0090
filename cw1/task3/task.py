@@ -13,7 +13,7 @@ import numpy as np
 import time
 
 from utils import cutout
-import network_pt as nw
+from network_pt import Net
 from model1 import LinearNet
 from model2 import CNN
 
@@ -193,7 +193,7 @@ if __name__ == '__main__':
     print("Evaluate training with and without Cutout data augmentation algorithm implemented in task2")
 
     #use model from tutorial
-    net = nw.Net()
+    net = Net()
 
     #define loss and optimizer
     criterion = torch.nn.CrossEntropyLoss()
