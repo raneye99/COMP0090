@@ -86,4 +86,5 @@ print("\nSGD - RMSE:")
 print("w: %5.2f" % rmse_sgd_w)
 print("y: %5.2f" % rmse_sgd_y)
 
+print("Task Finished")
 #training time is output when function to fit data is called

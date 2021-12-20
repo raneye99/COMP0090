@@ -245,3 +245,5 @@ if __name__ == '__main__':
     #perform 3 orld cross validation on 2 model
     kfold(3, trainset, net, optimizer, loss_fc=criterion, epochs=2, batch = 20, use_cutout=False, name = "Model2")
 
+    print("Best models have all been saved.")
+
