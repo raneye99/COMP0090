@@ -66,7 +66,7 @@ def kfold(fold, trainset, net, opt, loss_fc, epochs=2, batch =20, use_cutout = F
         criterion = loss_fc
         optimizer = opt
 
-        print("Start Training")
+        print("\nStart Training")
 
         t_start = time.perf_counter()
 
@@ -117,7 +117,7 @@ def kfold(fold, trainset, net, opt, loss_fc, epochs=2, batch =20, use_cutout = F
         torch.save(model.state_dict(),save_path)
         print('Model saved.')
 
-        print("Starting Validation")
+        print("\nStarting Validation")
 
         running_loss = 0.0
         correct = 0.0
@@ -206,7 +206,7 @@ if __name__ == '__main__':
     #declare classes
     classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
-    print("Evaluate training with and without Cutout data augmentation algorithm implemented in task2")
+    print("Evaluate training with and without cutout data augmentation algorithm implemented in task2")
 
     #use model from tutorial
     net = Net()
@@ -215,9 +215,11 @@ if __name__ == '__main__':
     criterion = torch.nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=.001, momentum =.9)
 
+    print("\nWith Cutout:")
     #use cross validation with cutout
     kfold(3, trainset, net, optimizer, loss_fc=criterion, epochs=2, batch=20, use_cutout=True, name = "Tutorial_with_Cutout")
 
+    print("\nWithout Cutout:")
     #use cross validation without cutout
     kfold(3, trainset, net, optimizer, loss_fc=criterion, epochs=2, batch=20, use_cutout=False, name = "Tutorial")
 
@@ -227,7 +229,7 @@ if __name__ == '__main__':
     criterion = torch.nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=.001, momentum =.9)
 
-    print("Perform 3 fold cross validation on Model 1")
+    print("\nPerform 3 fold cross validation on Model 1")
 
     #perform 3 fold cross validation on 1 model
     kfold(3, trainset, net, optimizer, loss_fc=criterion,epochs=2, batch = 20, use_cutout=False, name = "Model1")
@@ -238,7 +240,7 @@ if __name__ == '__main__':
     criterion = torch.nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=.001, momentum =.9)
 
-    print("Perform 3 fold cross validation on Model 2")
+    print("\nPerform 3 fold cross validation on Model 2")
 
     #perform 3 orld cross validation on 2 model
     kfold(3, trainset, net, optimizer, loss_fc=criterion, epochs=2, batch = 20, use_cutout=False, name = "Model2")
