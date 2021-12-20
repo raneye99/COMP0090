@@ -1,4 +1,6 @@
 #implement DenseNet architecture into image classification tutorial
+#adapted from https://arxiv.org/abs/1608.06993
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -67,6 +69,7 @@ class DenseNet3(nn.Module):
         self.bnend =  nn.BatchNorm2d(114)
         self.classifier = nn.Linear(114, 10)
 
+        #innit from torch repo
         for m in self.modules():
             if isinstance(m,nn.Conv2d):
                 nn.init.kaiming_normal_(m.weight)

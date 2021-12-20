@@ -108,7 +108,7 @@ if __name__ == '__main__':
             
             _,predicted = outputs.max(1)
             total += labels.size(0)
-            correct += predicted.eq(labels).sum().item()
+            correct += (predicted == labels).sum().item()
         
         
         train_loss = running_loss/len(trainloader)
@@ -133,7 +133,7 @@ if __name__ == '__main__':
 
                 _,predicted = outputs.max(1)
                 total += labels.size(0)
-                correct +=predicted.eq(labels).sum().item()
+                correct += (predicted == labels).sum().item()
 
                 #save a png of results 
                 if (epoch == 9):

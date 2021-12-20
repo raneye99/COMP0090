@@ -1,3 +1,5 @@
+#adapted from https://arxiv.org/abs/1708.04552
+
 import numpy as np
 import torch
 import torchvision
