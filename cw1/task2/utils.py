@@ -7,6 +7,8 @@ def cutout(n, s, img):
     n = number of cutouts
     s = max length of a cutout side
     img = a tensor image of size (c, h, w)
+
+    returns a tensor image with cutout
     '''
         
     #get hieght and width of image

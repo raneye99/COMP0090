@@ -1,18 +1,14 @@
-
-# adapted from image classification tutorial: https://github.com/YipengHu/COMP0090/blob/main/tutorials/img_cls/
-
 #import libraries
-# import tensorflow as tf
 import torch
 import torchvision
 import torchvision.transforms as transforms
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-import numpy as np
 from torch.autograd import Variable
 from torch.utils.data import DataLoader, TensorDataset
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
+import numpy as np
 
 #import our densenet
 import network_pt as dn
@@ -26,7 +22,7 @@ if __name__ == '__main__':
         [transforms.ToTensor(),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
-    batch_size = 20
+    batch_size = 40
 
     #get training set
     trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
@@ -39,26 +35,15 @@ if __name__ == '__main__':
     #declare classes
     classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
-    # # example images
-    # dataiter = iter(trainloader)
-    # images, labels = dataiter.next()
-
-    # im = Image.fromarray((torch.cat(images.split(1,0),3).squeeze()/2*255+.5*255).permute(1,2,0).numpy().astype('uint8'))
-    # im.save("train_pt_images.jpg")
-    # print('train_pt_images.jpg saved.')
-    # print('Ground truth labels:' + ' '.join('%5s' % classes[labels[j]] for j in range(batch_size)))
-
-
     ## densenet
     net = dn.DenseNet3()
     ##print model architexture
     print("Model Architecture:")
     print("\n",net)
 
-
-    ## loss and optimiser
-    criterion = torch.nn.CrossEntropyLoss()
-    optimizer = optim.SGD(net.parameters(), lr=0.1, momentum=0.9, nesterov=True, weight_decay= 1e-4)
+    #define loss and optimizer
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.SGD(net.parameters(), lr=.001, momentum =.9)
 
     #initialize empty vectors to store values
     train_accuracy = []
@@ -67,12 +52,14 @@ if __name__ == '__main__':
     test_losses = []
 
     ## train
-    for epoch in range(1):  # loop over the dataset multiple times
+    for epoch in range(10):  # loop over the dataset multiple times
 
         print(f'Starting Epoch {epoch+1}')
 
         #train
         running_loss = 0.0
+        correct = 0.0
+        total = 0
         
         for i, data in enumerate(trainloader, 0):
             # get the inputs; data is a list of [inputs, labels]
@@ -81,25 +68,53 @@ if __name__ == '__main__':
             #insert cutout algorithm into training
             cutouts = []
             for j,x in enumerate(inputs):
-                new_image = cutout(1,16,x)
+                new_image = cutout(1,32,x)
                 cutouts.append(new_image)
             
-            new_inputs = torch.stack(cutouts)
+            inputs = torch.stack(cutouts)
+
+            #save cutout image for first batch
+            if(epoch == 0):
+                if (i == 0):
+
+                    imgs = []
+                    # get images
+                    for k in range(len(inputs)):
+
+                        img = (inputs[k]/2 +.5)*100  # unnormalize
+                        im = img.cpu().detach().numpy()
+                        # im = img.numpy()
+                        im = np.transpose(im, (1,2,0))
+                        im = np.uint8(im)
+                        imgs.append(Image.fromarray(im, 'RGB'))
+
+                    #create collage
+                    collage = Image.new('RGB', (32, 32*16))
+                    for l in range(16):
+                        collage.paste(imgs[l], (0,32*l))
+                        collage.save('cutout.png')
 
             # zero the parameter gradients
             optimizer.zero_grad()
 
             # forward + backward + optimize
-            outputs = net(new_inputs)
+            outputs = net(inputs)
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
 
             # print statistics
             running_loss += loss.item()
+            
+            _,predicted = outputs.max(1)
+            total += labels.size(0)
+            correct += predicted.eq(labels).sum().item()
+        
         
         train_loss = running_loss/len(trainloader)
-        print('Train Loss: %.3f'%(train_loss))
+        train_accu = 100.*correct/total
+
+        print('Train Loss: %.3f | Train Accuracy: %.3f'%(train_loss,train_accu),'%')
 
         #test
         running_loss = 0.0
@@ -108,7 +123,7 @@ if __name__ == '__main__':
 
         #forward pass only
         with torch.no_grad():
-            for k, data in enumerate(testloader,0):
+            for i, data in enumerate(testloader,0):
                 inputs, lables = data
 
                 outputs = net(inputs)
@@ -120,6 +135,37 @@ if __name__ == '__main__':
                 total += labels.size(0)
                 correct +=predicted.eq(labels).sum().item()
 
+                #save a png of results 
+                if (epoch == 9):
+                    if (i == 0):
+                        imgs = []
+                        # get images
+                        for k in range(len(inputs)):
+
+                            img = (inputs[k]/2 +.5)*100  # unnormalize
+                            im = img.cpu().detach().numpy()
+                            im = np.transpose(im, (1,2,0))
+                            im = np.uint8(im)
+                            im = Image.fromarray(im, 'RGB')
+                            im = im.resize((128,128))
+                            im_draw = ImageDraw.Draw(im)
+    
+                            gt = "\nGT:"
+                            pd = "Pred:"
+                            tv = classes[labels[k]]
+                            yh = classes[predicted[k]]
+                            text = pd + yh + gt + tv
+                            fontsize = 1
+                            im_draw.text((0,0),text)
+
+                            imgs.append(im)
+
+                        #create collage
+                        collage = Image.new('RGB', (128, 128*36))
+                        for l in range(36):
+                            collage.paste(imgs[l], (0,128*l))
+                            collage.save('results.png')
+
         test_loss = running_loss/len(testloader)
         test_accu = 100.*correct/total
 
@@ -129,7 +175,7 @@ if __name__ == '__main__':
         print('Test Loss: %.3f | Test Accuracy: %.3f'%(test_loss,test_accu),'%')
                     
 
-    print('Training done.')
+    print('Training and testing done.')
 
     # save trained model
     torch.save(net.state_dict(), 'saved_model.pt')

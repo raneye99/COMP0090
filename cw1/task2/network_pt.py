@@ -1,5 +1,4 @@
 #implement DenseNet architecture into image classification tutorial
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -7,24 +6,25 @@ import torch.nn.functional as F
 class Dense_Layer(nn.Module):
     def __init__(self, n_in, n_out):
         super(Dense_Layer, self).__init__()
-        self.bndl = nn.BatchNorm2d(n_in)
-        self.reludl = nn.ReLU(inplace=True)
-        self.convdl = nn.Conv2d(n_in, n_out, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn = nn.BatchNorm2d(n_in)
+        self.relu = nn.ReLU(inplace=True)
+        self.conv = nn.Conv2d(n_in, n_out, kernel_size=3, stride=1, padding=1, bias=False)
+    
     def forward(self,x):
-        out = self.convdl(self.reludl(self.bndl(x)))
-        x = torch.cat((x,out),1)
-        return x
+        out = self.conv(self.relu(self.bn(x)))
+        out = torch.cat([out,x],1)
+        return out
 
-class Transition_Layer(nn.Module):
+class Transition_Layer(nn.Sequential):
     def __init__(self, n_in, n_out):
         super(Transition_Layer, self).__init__()
-        self.bntl = nn.BatchNorm2d(n_in)
-        self.relutl = nn.ReLU(inplace=True)
-        self.convtl = nn.Conv2d(n_in, n_out,kernel_size=1,stride=1,padding = 0,bias=False)
-        self.pooltl = nn.AvgPool2d(kernel_size=2, stride=2)
+        self.bn = nn.BatchNorm2d(n_in)
+        self.relu = nn.ReLU(inplace=True)
+        self.conv = nn.Conv2d(n_in, n_out,kernel_size=1,stride=1,padding = 0,bias=0)
+        self.pool = nn.AvgPool2d(kernel_size=2, stride=2)
     
     def forward(self, x):
-        x = self.pooltl(self.convtl(self.relutl(self.bntl(x))))
+        x = self.pool(self.conv(self.relu(self.bn(x))))
         return x
 
 class Dense_Block(nn.Module):
@@ -32,6 +32,11 @@ class Dense_Block(nn.Module):
         super(Dense_Block, self).__init__()
         self.layer = self.dense_block(n_in, growth)
     def dense_block(self, n_in, growth):
+        '''
+        n_in = number of input channels for first layer
+        growth = number of channels added at every subsequent layer
+        output: a dense block made of 4 dense layers
+        '''
         layers = []
         for i in range(0,4):
             layers.append(Dense_Layer(n_in + i*growth, growth))
@@ -43,24 +48,33 @@ class DenseNet3(nn.Module):
     def __init__(self):
         super(DenseNet3, self).__init__()
         #initial convolution
-        self.conv0 = nn.Conv2d(3, 32, kernel_size=3, stride = 1, padding=1, bias=False)
+        self.conv0 = nn.Conv2d(3, 6, kernel_size=3, stride = 1, padding=1, bias=False)
         
         #first denseblock
-        self.dense1 = Dense_Block(n_in = 32, growth = 32)
+        self.dense1 = Dense_Block(n_in = 6, growth = 16)
         #note since there are 4 layers the output of denseblock will have 6 +4*16 channels
-        self.trans1 = Transition_Layer(n_in = 160, n_out = 80)
+        self.trans1 = Transition_Layer(n_in = 70, n_out = 35)
 
         #second denseblock
-        self.dense2 = Dense_Block(n_in = 80, growth = 32)
+        self.dense2 = Dense_Block(n_in = 35, growth = 16)
         #note since there are 4 layers the output of denseblock will have 35 + 4*16
-        self.trans2 = Transition_Layer(n_in = 208, n_out=104)
+        self.trans2 = Transition_Layer(n_in = 99, n_out=50)
 
         #third denseblock
-        self.dense3 = Dense_Block(n_in=104,growth=32)
+        self.dense3 = Dense_Block(n_in=50,growth=16)
 
         #global average pooling, classifier
-        self.bnend =  nn.BatchNorm2d(232)
-        self.classifier = nn.Linear(232, 10)
+        self.bnend =  nn.BatchNorm2d(114)
+        self.classifier = nn.Linear(114, 10)
+
+        for m in self.modules():
+            if isinstance(m,nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight)
+            elif isinstance(m, nn.BatchNorm2d):
+                nn.init.constant_(m.weight,1)
+                nn.init.constant_(m.bias,0)
+            elif isinstance(m,nn.Linear):
+                nn.init.constant_(m.bias,0)
 
     def forward(self,x):
         out = self.conv0(x)
